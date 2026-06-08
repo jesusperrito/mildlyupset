@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mildlyupset — content studio</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+  body {
+    background: #ffffff;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    font-family: 'Georgia', serif;
+    cursor: none;
+  }
+
+  #canvas {
+    position: absolute;
+    inset: 0;
+    touch-action: none;
+  }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  #est {
+    position: absolute;
+    top: 44px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    color: #111;
+    font-family: 'Georgia', serif;
+    white-space: nowrap;
+  }
+
+  #serviceplan {
+    position: absolute;
+    bottom: 44px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: #111;
+    font-family: 'Georgia', serif;
+    white-space: nowrap;
+  }
+
+  #logo-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(72vw, 660px);
+  }
+
+  #logo-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* ── controls ── */
+  #ui {
+    position: absolute;
+    bottom: 36px;
+    right: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    z-index: 10;
+    pointer-events: all;
+  }
+
+  #ui-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .size-btn {
+    width: 33px;
+    height: 33px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1.5px solid #ccc;
+    background: #fff;
+    color: #666;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    font-family: 'Georgia', serif;
+  }
+  .size-btn:hover  { border-color: #111; color: #111; }
+  .size-btn.active { border-color: #111; background: #111; color: #fff; }
+
+  .sep-v { width: 1px; height: 20px; background: #e0e0e0; flex-shrink: 0; }
+
+  .action-btn {
+    background: #fff;
+    border: 1.5px solid #ccc;
+    border-radius: 20px;
+    color: #666;
+    padding: 6px 14px;
+    font-size: 11px;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: border-color 0.15s, color 0.15s;
+    font-family: 'Georgia', serif;
+    text-transform: lowercase;
+  }
+  .action-btn:hover { border-color: #111; color: #111; }
+
+  #color-indicator { display: flex; align-items: center; gap: 6px; }
+  .color-pip {
+    width: 9px; height: 9px; border-radius: 50%;
+    transition: transform 0.18s;
+    opacity: 0.35;
+  }
+  .color-pip.active { transform: scale(1.6); opacity: 1; }
+
+  #hint {
+    position: absolute;
+    bottom: 44px;
+    left: 28px;
+    color: #ccc;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    pointer-events: none;
+    font-family: 'Georgia', serif;
+  }
+
+  /* custom SVG cursors */
+  #cursor-pencil, #cursor-hand, #cursor-grabbing {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="overlay">
+  <span id="est">est. 2025</span>
+
+  <div id="logo-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820.58 197.5">
+      <defs><style>.cls-1{fill:#231f20;}</style></defs>
+      <g>
+        <path d="M20.51,123.09H0V41.03h82.06v20.51h-20.51v61.54h-20.51v-61.54h-20.51v61.54ZM102.57,123.09h-20.51v-61.54h20.51v61.54Z"/>
+        <path d="M123.09,20.51V0h20.51v20.51h-20.51ZM143.6,123.09h-20.51V41.03h20.51v82.06Z"/>
+        <path d="M184.63,123.09h-20.51V20.51h20.51v102.57Z"/>
+        <path d="M225.66,123.09v-20.51h-20.51v-41.03h20.51v41.03h20.51v-41.03h-20.51v-20.51h20.51v-20.51h20.51v102.57h-41.03Z"/>
+        <path d="M307.72,123.09h-20.51V20.51h20.51v102.57Z"/>
+        <path d="M348.75,102.57h-20.51v-61.54h20.51v61.54ZM328.23,143.6v-20.51h20.51v20.51h-20.51ZM369.26,102.57v20.51h-20.51v-20.51h20.51ZM389.78,102.57h-20.51v-61.54h20.51v61.54Z"/>
+        <path d="M471.84,123.09v-20.51h-20.51v-61.54h20.51v61.54h20.51v-61.54h20.51v82.06h-41.03Z"/>
+        <path d="M574.41,102.57v20.51h-20.51v20.51h-20.51V41.03h41.03v20.51h-20.51v41.03h20.51ZM594.92,102.57h-20.51v-41.03h20.51v41.03Z"/>
+        <path d="M635.95,61.54v-20.51h41.03v20.51h-20.51v20.51h-41.03v-20.51h20.51ZM656.47,102.57v20.51h-41.03v-20.51h41.03ZM676.98,102.57h-20.51v-20.51h20.51v20.51Z"/>
+        <path d="M718.01,102.57h-20.51v-41.03h20.51v-20.51h20.51v20.51h20.51v20.51h-41.03v20.51ZM718.01,123.09v-20.51h41.03v20.51h-41.03Z"/>
+        <path d="M800.07,102.57h-20.51V20.51h20.51v20.51h20.51v20.51h-20.51v41.03ZM800.07,123.09v-20.51h20.51v20.51h-20.51Z"/>
+        <path class="cls-1" d="M321.25,197.5c-1.3,0-2.48-.44-3.53-1.31-1.05-.87-1.89-2.12-2.51-3.75-.62-1.63-.93-3.57-.93-5.82,0-2.52.38-4.71,1.13-6.57.75-1.87,1.78-3.31,3.09-4.33,1.3-1.02,2.75-1.53,4.35-1.53,1.36,0,2.43.27,3.2.8.3.21.44.53.44.98l.09,5.42c0,.44-.18.67-.53.67-.33,0-.53-.19-.62-.58-.42-1.63-.81-2.89-1.2-3.78-.39-.89-.79-1.5-1.2-1.84-.42-.34-.87-.51-1.38-.51-.59,0-1.21.34-1.84,1.02-.64.68-1.17,1.78-1.6,3.31-.43,1.53-.64,3.53-.64,6.02,0,3.17.41,5.55,1.22,7.15.81,1.6,1.87,2.4,3.18,2.4,1.04,0,1.9-.43,2.6-1.29.7-.86,1.29-2.41,1.8-4.66.09-.33.27-.49.53-.49.36,0,.49.3.4.89-.33,2.07-.78,3.68-1.35,4.82-.58,1.14-1.26,1.93-2.04,2.35-.79.43-1.67.64-2.64.64Z"/>
+        <path class="cls-1" d="M337.33,197.5c-1.51,0-2.86-.51-4.06-1.53-1.2-1.02-2.15-2.42-2.86-4.2-.71-1.78-1.07-3.76-1.07-5.95s.36-4.16,1.07-5.91c.71-1.75,1.67-3.14,2.89-4.18,1.21-1.04,2.56-1.55,4.04-1.55s2.87.52,4.07,1.55c1.2,1.04,2.15,2.43,2.86,4.18.71,1.75,1.07,3.72,1.07,5.91s-.35,4.18-1.04,5.95c-.7,1.78-1.65,3.18-2.87,4.2-1.21,1.02-2.58,1.53-4.09,1.53ZM337.33,196.39c3.08,0,4.62-3.52,4.62-10.57s-1.54-10.53-4.62-10.53-4.62,3.51-4.62,10.53,1.54,10.57,4.62,10.57Z"/>
+        <path class="cls-1" d="M347.77,197.1c-.44,0-.67-.16-.67-.49,0-.27.19-.44.58-.53l.53-.09c.62-.12,1.03-.3,1.22-.56.19-.25.29-.69.29-1.31v-14.92c0-.53-.08-.9-.24-1.09-.16-.19-.45-.32-.87-.38l-.93-.13c-.39-.03-.58-.19-.58-.49,0-.24.24-.4.71-.49.92-.15,1.62-.38,2.11-.71.49-.33,1-.73,1.53-1.2.27-.27.49-.4.67-.4.27,0,.4.18.4.53v2c0,.27.1.44.29.51.19.07.41,0,.64-.24,1.18-1.12,2.23-1.89,3.13-2.31.9-.41,1.86-.62,2.87-.62,1.33,0,2.4.47,3.2,1.4s1.2,2.3,1.2,4.11v14.44c0,.62.1,1.06.29,1.31.19.25.6.42,1.22.51l.98.13c.33.06.49.24.49.53,0,.33-.18.49-.53.49h-7.46c-.42,0-.62-.16-.62-.49,0-.3.16-.47.49-.53l.62-.09c.62-.09,1.03-.27,1.22-.53s.29-.71.29-1.33v-13.95c0-1.45-.27-2.47-.8-3.07-.53-.59-1.29-.89-2.27-.89s-1.8.27-2.55.82-1.36,1.27-1.8,2.18c-.44.9-.67,1.9-.67,3v11.9c0,.62.1,1.07.29,1.33.19.27.6.43,1.22.49l1.2.13c.33.06.49.22.49.49,0,.36-.22.53-.67.53h-7.51Z"/>
+        <path class="cls-1" d="M373.84,197.5c-1.04,0-1.89-.36-2.55-1.09-.67-.73-1-1.92-1-3.58v-16.61c0-.36-.18-.53-.53-.53h-1.29c-.47,0-.71-.18-.71-.53,0-.24.13-.44.4-.62.98-.68,1.76-1.41,2.35-2.2.59-.78,1.11-1.86,1.55-3.22.21-.62.46-.93.75-.93.33,0,.49.24.49.71v4.93c0,.42.21.62.62.62h2.89c.47,0,.71.21.71.62s-.24.62-.71.62h-2.89c-.42,0-.62.21-.62.62v16.57c0,.65.1,1.16.31,1.53.21.37.59.56,1.15.56.62,0,1.13-.31,1.53-.93.4-.62.66-1.63.78-3.02.06-.41.25-.62.58-.62.36,0,.53.22.53.67-.09,2.28-.56,3.92-1.4,4.93s-1.83,1.51-2.95,1.51Z"/>
+        <path class="cls-1" d="M387.35,197.5c-1.42,0-2.7-.47-3.82-1.42-1.12-.95-2.02-2.29-2.69-4.02-.67-1.73-1-3.74-1-6.02s.34-4.4,1.02-6.17c.68-1.78,1.61-3.17,2.8-4.17,1.18-1.01,2.5-1.51,3.95-1.51,1.75,0,3.16.72,4.24,2.15,1.08,1.44,1.62,3.77,1.62,7,0,.98-.37,1.47-1.11,1.47h-8.44c-.59,0-.89.34-.89,1.02,0,3.14.46,5.49,1.38,7.06s2.09,2.35,3.51,2.35c1.13,0,2.04-.4,2.75-1.2.71-.8,1.29-2.15,1.73-4.04.09-.33.28-.49.58-.49.36,0,.49.3.4.89-.47,2.64-1.23,4.48-2.27,5.53-1.04,1.05-2.29,1.58-3.78,1.58ZM383.79,183.68h4.49c1.42,0,2.13-.74,2.13-2.22,0-1.92-.24-3.44-.71-4.53-.47-1.09-1.18-1.64-2.13-1.64-1.16,0-2.13.67-2.91,2-.79,1.33-1.3,3.23-1.53,5.69-.06.47.16.71.67.71Z"/>
+        <path class="cls-1" d="M395.92,197.1c-.44,0-.67-.16-.67-.49,0-.27.19-.44.58-.53l.53-.09c.62-.12,1.03-.3,1.22-.56.19-.25.29-.69.29-1.31v-14.92c0-.53-.08-.9-.24-1.09-.16-.19-.45-.32-.87-.38l-.93-.13c-.39-.03-.58-.19-.58-.49,0-.24.24-.4.71-.49.92-.15,1.62-.38,2.11-.71.49-.33,1-.73,1.53-1.2.27-.27.49-.4.67-.4.27,0,.4.18.4.53v2c0,.27.1.44.29.51.19.07.41,0,.64-.24,1.18-1.12,2.23-1.89,3.13-2.31.9-.41,1.86-.62,2.87-.62,1.33,0,2.4.47,3.2,1.4s1.2,2.3,1.2,4.11v14.44c0,.62.1,1.06.29,1.31.19.25.6.42,1.22.51l.98.13c.33.06.49.24.49.53,0,.33-.18.49-.53.49h-7.46c-.42,0-.62-.16-.62-.49,0-.3.16-.47.49-.53l.62-.09c.62-.09,1.03-.27,1.22-.53s.29-.71.29-1.33v-13.95c0-1.45-.27-2.47-.8-3.07-.53-.59-1.29-.89-2.27-.89s-1.8.27-2.55.82-1.36,1.27-1.8,2.18c-.44.9-.67,1.9-.67,3v11.9c0,.62.1,1.07.29,1.33.19.27.6.43,1.22.49l1.2.13c.33.06.49.22.49.49,0,.36-.22.53-.67.53h-7.51Z"/>
+        <path class="cls-1" d="M421.99,197.5c-1.04,0-1.89-.36-2.55-1.09-.67-.73-1-1.92-1-3.58v-16.61c0-.36-.18-.53-.53-.53h-1.29c-.47,0-.71-.18-.71-.53,0-.24.13-.44.4-.62.98-.68,1.76-1.41,2.35-2.2.59-.78,1.11-1.86,1.55-3.22.21-.62.46-.93.75-.93.33,0,.49.24.49.71v4.93c0,.42.21.62.62.62h2.89c.47,0,.71.21.71.62s-.24.62-.71.62h-2.89c-.42,0-.62.21-.62.62v16.57c0,.65.1,1.16.31,1.53.21.37.59.56,1.15.56.62,0,1.13-.31,1.53-.93.4-.62.66-1.63.78-3.02.06-.41.25-.62.58-.62.36,0,.53.22.53.67-.09,2.28-.56,3.92-1.4,4.93s-1.83,1.51-2.95,1.51Z"/>
+        <path class="cls-1" d="M440.34,197.5c-.68,0-1.41-.08-2.18-.24-.77-.16-1.39-.36-1.87-.6-.27-.15-.4-.4-.4-.75l-.13-4.98c0-.5.19-.75.58-.75.33,0,.55.24.67.71.5,2.1,1.12,3.54,1.84,4.31.72.77,1.61,1.16,2.64,1.16.86,0,1.57-.33,2.13-1,.56-.67.84-1.59.84-2.78s-.33-2.24-.98-3.15-1.75-1.92-3.29-3.02c-1.54-1.04-2.67-2.08-3.38-3.13-.71-1.05-1.07-2.2-1.07-3.44,0-1.69.59-3.05,1.78-4.09,1.18-1.04,2.75-1.55,4.71-1.55.59,0,1.17.07,1.73.2.56.13,1.07.35,1.51.64.27.18.4.42.4.71l.09,4.89c0,.44-.18.67-.53.67-.21,0-.35-.07-.44-.2-.09-.13-.16-.3-.22-.51-.59-1.92-1.18-3.26-1.78-4.02-.59-.76-1.32-1.13-2.18-1.13-.77,0-1.41.27-1.91.8-.5.53-.75,1.2-.75,2,0,1.04.31,1.94.93,2.71.62.77,1.75,1.72,3.38,2.84,1.48,1.07,2.6,2.21,3.35,3.44.75,1.23,1.13,2.57,1.13,4.02,0,1.9-.61,3.41-1.82,4.55-1.21,1.14-2.81,1.71-4.8,1.71Z"/>
+        <path class="cls-1" d="M454.73,197.5c-1.04,0-1.89-.36-2.55-1.09-.67-.73-1-1.92-1-3.58v-16.61c0-.36-.18-.53-.53-.53h-1.29c-.47,0-.71-.18-.71-.53,0-.24.13-.44.4-.62.98-.68,1.76-1.41,2.35-2.2.59-.78,1.11-1.86,1.55-3.22.21-.62.46-.93.75-.93.33,0,.49.24.49.71v4.93c0,.42.21.62.62.62h2.89c.47,0,.71.21.71.62s-.24.62-.71.62h-2.89c-.42,0-.62.21-.62.62v16.57c0,.65.1,1.16.31,1.53.21.37.59.56,1.15.56.62,0,1.13-.31,1.53-.93.4-.62.66-1.63.78-3.02.06-.41.25-.62.58-.62.36,0,.53.22.53.67-.09,2.28-.56,3.92-1.4,4.93s-1.83,1.51-2.95,1.51Z"/>
+        <path class="cls-1" d="M466.95,197.5c-.74,0-1.45-.16-2.13-.49-.68-.33-1.24-.84-1.69-1.55s-.67-1.66-.67-2.84v-15.46c0-.53-.08-.9-.24-1.11-.16-.21-.45-.33-.87-.35l-.76-.09c-.5-.06-.75-.25-.75-.58,0-.38.28-.58.84-.58h4.13c.44,0,.67.22.67.67v16.57c0,1.36.26,2.33.78,2.91.52.58,1.24.87,2.15.87s1.73-.26,2.44-.78c.71-.52,1.28-1.21,1.71-2.09.43-.87.64-1.83.64-2.87v-12.57c0-.53-.08-.9-.25-1.11-.16-.21-.45-.33-.87-.35l-.75-.09c-.5-.06-.75-.25-.75-.58,0-.38.28-.58.84-.58h4.13c.44,0,.67.22.67.67v17.24c0,.53.08.9.24,1.09.16.19.45.32.87.38l.93.13c.38.03.58.18.58.44s-.24.44-.71.53c-.92.12-1.65.36-2.2.71-.55.36-1.03.79-1.44,1.29-.27.27-.49.4-.67.4-.27,0-.4-.18-.4-.53v-2.04c0-.24-.08-.38-.24-.42-.16-.04-.33.02-.51.2-1.1,1.1-2.07,1.87-2.91,2.31-.84.44-1.78.67-2.82.67Z"/>
+        <path class="cls-1" d="M487.56,197.5c-1.3,0-2.46-.45-3.49-1.35-1.02-.9-1.81-2.16-2.38-3.78s-.84-3.49-.84-5.62c0-2.49.38-4.67,1.15-6.55.77-1.88,1.84-3.35,3.2-4.42,1.36-1.07,2.9-1.6,4.62-1.6.41,0,.83.04,1.24.11.41.07.81.2,1.2.38.47.24.71.13.71-.31v-5.69c0-.53-.08-.9-.25-1.11s-.45-.33-.87-.36l-1.15-.13c-.33-.06-.49-.24-.49-.53s.16-.47.49-.53c.95-.18,1.71-.38,2.29-.62.58-.24,1.06-.47,1.44-.71.47-.3.83-.44,1.07-.44.33,0,.49.24.49.71v27.94c0,1.24.31,1.87.93,1.87.38,0,.74-.26,1.07-.78.33-.52.49-1.4.49-2.64,0-.47.19-.71.58-.71.36,0,.53.25.53.75,0,2.16-.37,3.72-1.11,4.69-.74.96-1.58,1.44-2.53,1.44-.86,0-1.51-.29-1.95-.87-.44-.58-.74-1.27-.89-2.07-.03-.24-.13-.36-.31-.38s-.34.1-.49.33c-.83,1.15-1.58,1.94-2.26,2.35-.68.41-1.51.62-2.49.62ZM488.54,195.45c.77,0,1.49-.26,2.15-.78.67-.52,1.21-1.22,1.64-2.11.43-.89.64-1.88.64-2.98v-10c0-1.33-.3-2.38-.91-3.15-.61-.77-1.4-1.16-2.38-1.16-1.66,0-3,.97-4.02,2.91s-1.53,4.58-1.53,7.93c0,3.05.39,5.37,1.18,6.95.78,1.58,1.86,2.38,3.22,2.38Z"/>
+        <path class="cls-1" d="M501.15,197.1c-.44,0-.67-.16-.67-.49,0-.27.19-.44.58-.53l.53-.09c.74-.12,1.21-.3,1.42-.56.21-.25.31-.69.31-1.31v-14.92c0-.53-.08-.9-.24-1.09-.16-.19-.45-.32-.87-.38l-.93-.13c-.39-.03-.58-.19-.58-.49,0-.24.24-.4.71-.49.92-.15,1.66-.38,2.22-.71.56-.33,1.11-.73,1.64-1.2.27-.27.49-.4.67-.4.27,0,.4.18.4.53v19.28c0,.62.09,1.07.27,1.33s.52.43,1.02.49l1.11.13c.33.06.49.22.49.49,0,.36-.22.53-.67.53h-7.42ZM504.88,170.22c-.62,0-1.15-.22-1.58-.67-.43-.44-.64-1.01-.64-1.69s.21-1.24.64-1.67c.43-.43.96-.64,1.58-.64s1.14.21,1.55.64c.42.43.62.99.62,1.67s-.21,1.24-.62,1.69c-.42.44-.93.67-1.55.67Z"/>
+        <path class="cls-1" d="M518.74,197.5c-1.51,0-2.87-.51-4.06-1.53s-2.15-2.42-2.87-4.2c-.71-1.78-1.07-3.76-1.07-5.95s.36-4.16,1.07-5.91,1.67-3.14,2.89-4.18c1.21-1.04,2.56-1.55,4.04-1.55s2.87.52,4.06,1.55c1.2,1.04,2.15,2.43,2.87,4.18s1.07,3.72,1.07,5.91-.35,4.18-1.04,5.95c-.7,1.78-1.65,3.18-2.87,4.2-1.21,1.02-2.58,1.53-4.09,1.53ZM518.74,196.39c3.08,0,4.62-3.52,4.62-10.57s-1.54-10.53-4.62-10.53-4.62,3.51-4.62,10.53,1.54,10.57,4.62,10.57Z"/>
+      </g>
+    </svg>
+  </div>
+
+  <span id="serviceplan">a serviceplan initiative</span>
+</div>
+
+<div id="ui">
+  <div id="color-indicator">
+    <div class="color-pip active" id="pip-0" style="background:#FF2D8B"></div>
+    <div class="color-pip"       id="pip-1" style="background:#E8431A"></div>
+    <div class="color-pip"       id="pip-2" style="background:#2B3FF5"></div>
+  </div>
+  <div id="ui-row">
+    <div class="size-btn active" data-size="S">S</div>
+    <div class="size-btn"        data-size="M">M</div>
+    <div class="size-btn"        data-size="L">L</div>
+    <div class="sep-v"></div>
+    <button class="action-btn" id="gravity-btn">flip gravity</button>
+    <button class="action-btn" id="clear-btn">clear</button>
+  </div>
+</div>
+
+<div id="hint">draw · drag · throw</div>
+<!-- pencil cursor (drawing mode) -->
+<svg id="cursor-pencil" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M4 20L8.5 19L19.5 8L16 4.5L5 15.5L4 20Z" fill="#111" stroke="#fff" stroke-width="0.8"/>
+  <path d="M16 4.5L19.5 8" stroke="#fff" stroke-width="0.8"/>
+  <path d="M5 15.5L8.5 19" stroke="#fff" stroke-width="0.5" stroke-dasharray="1 1"/>
+</svg>
+
+<!-- open hand cursor (hovering a shape) -->
+<svg id="cursor-hand" width="26" height="28" viewBox="0 0 26 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8 14V5.5C8 4.67 8.67 4 9.5 4C10.33 4 11 4.67 11 5.5V12" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M11 11V4.5C11 3.67 11.67 3 12.5 3C13.33 3 14 3.67 14 4.5V11" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M14 11V5.5C14 4.67 14.67 4 15.5 4C16.33 4 17 4.67 17 5.5V12" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M17 13V9.5C17 8.67 17.67 8 18.5 8C19.33 8 20 8.67 20 9.5V17C20 21 17.5 24 13.5 24C9.5 24 7 21.5 7 18V14C7 13.17 7.67 12.5 8.5 12.5C9.33 12.5 10 13.17 10 14" stroke="#111" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+
+<!-- grabbing hand cursor (dragging) -->
+<svg id="cursor-grabbing" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 13C6 11.9 6.9 11 8 11H10V9.5C10 8.67 10.67 8 11.5 8C12.33 8 13 8.67 13 9.5V11H15.5C16.33 11 17 11.67 17 12.5V13H18.5C19.33 13 20 13.67 20 14.5V16C20 19.87 16.87 23 13 23C9.13 23 6 19.87 6 16V13Z" stroke="#111" stroke-width="1.4" stroke-linejoin="round"/>
+  <path d="M10 11V8" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M13 11V8" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M16.5 13V11" stroke="#111" stroke-width="1.4" stroke-linecap="round"/>
+</svg>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+const PALETTE = ['#FF2D8B', '#E8431A', '#2B3FF5'];
+let paletteIdx = 0;
+
+function nextColor() {
+  const c = PALETTE[paletteIdx % PALETTE.length];
+  paletteIdx++;
+  updatePips();
+  return c;
+}
+function updatePips() {
+  const a = paletteIdx % PALETTE.length;
+  PALETTE.forEach((_, i) =>
+    document.getElementById('pip-' + i).classList.toggle('active', i === a)
+  );
+}
+
+const BRUSH_SIZES = { S: 4, M: 8, L: 15 };
+let currentSize    = 'S';
+let gravityFlipped = false;
+
+/* ── canvas ── */
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+let W = 0, H = 0;
+const SAFE = 100; // px inset — bodies bounce back if they escape
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  updateBoundaries();
+}
+window.addEventListener('resize', resize);
+
+/* ── matter.js (soft gravity) ── */
+const { Engine, Runner, Bodies, Body, World, Query } = Matter;
+const engine = Engine.create({ gravity: { x: 0, y: 0.5 } });
+const world  = engine.world;
+Runner.run(Runner.create(), engine);
+
+let ground, ceiling, wallL, wallR;
+
+function createBoundaries() {
+  const T = 80;
+  ground  = Bodies.rectangle(W/2,    H+T/2,  W+200, T, { isStatic:true, friction:0.6,  restitution:0.22 });
+  ceiling = Bodies.rectangle(W/2,    -H*3,   W+200, T, { isStatic:true, friction:0.3,  restitution:0.18 });
+  wallL   = Bodies.rectangle(-T/2,   H/2,    T, H*4,  { isStatic:true, friction:0.4,  restitution:0.2  });
+  wallR   = Bodies.rectangle(W+T/2,  H/2,    T, H*4,  { isStatic:true, friction:0.4,  restitution:0.2  });
+  World.add(world, [ground, ceiling, wallL, wallR]);
+}
+
+function updateBoundaries() {
+  if (!ground) return;
+  const T = 80;
+  Body.setPosition(ground,  { x: W/2,   y: H+T/2 });
+  Body.setPosition(ceiling, { x: W/2,   y: -H*3  });
+  Body.setPosition(wallL,   { x: -T/2,  y: H/2   });
+  Body.setPosition(wallR,   { x: W+T/2, y: H/2   });
+}
+
+resize();
+createBoundaries();
+
+/* ── body store ── */
+let bodies = [];
+
+/* ── safe-zone clamp (runs every frame) ── */
+function clampBodies() {
+  bodies.forEach(({ body }) => {
+    if (body.isStatic) return;
+    const { x, y } = body.position;
+    const vx = body.velocity.x, vy = body.velocity.y;
+    let nx = vx, ny = vy;
+    if (x < SAFE && vx < 0)       nx =  Math.abs(vx) * 0.7;
+    if (x > W - SAFE && vx > 0)   nx = -Math.abs(vx) * 0.7;
+    if (y > H - SAFE && vy > 0)   ny = -Math.abs(vy) * 0.7;
+    // Top: only nudge back if very far above screen (2.5x height above)
+    if (y < -H * 2.5 && vy < 0)   ny =  Math.abs(vy) * 0.6;
+    if (nx !== vx || ny !== vy) Body.setVelocity(body, { x: nx, y: ny });
+  });
+}
+
+/* ── periodic random kicks every 5–10 s ── */
+function doKick() {
+  if (!bodies.length) return;
+  const n = Math.max(1, Math.floor(bodies.length * (0.2 + Math.random() * 0.2)));
+  [...bodies]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, n)
+    .forEach(({ body }) => {
+      if (body.isStatic) return;
+      const angle = Math.random() * Math.PI * 2;
+      const mag   = 0.0003 + Math.random() * 0.0006; // much weaker
+      Body.applyForce(body, body.position, {
+        x: Math.cos(angle) * mag * body.mass,
+        y: Math.sin(angle) * mag * body.mass
+      });
+      Body.setAngularVelocity(body, body.angularVelocity + (Math.random() - 0.5) * 0.12);
+    });
+}
+function scheduleKick() {
+  setTimeout(() => { doKick(); scheduleKick(); }, 5000 + Math.random() * 5000);
+}
+scheduleKick();
+
+/* ── pointer ── */
+let isDoodling   = false;
+let doodlePoints = [];
+let strokeColor  = PALETTE[0];
+let dragging     = null;
+let dragOffset   = { x: 0, y: 0 };
+let pointerDown  = false;
+let lastPos      = { x: 0, y: 0 };
+let velHistory   = [];
+
+/* ── ui events ── */
+document.querySelectorAll('.size-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSize = btn.dataset.size;
+  });
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  bodies.forEach(b => World.remove(world, b.body));
+  bodies = [];
+});
+
+document.getElementById('gravity-btn').addEventListener('click', () => {
+  gravityFlipped = !gravityFlipped;
+  engine.gravity.y = gravityFlipped ? -0.5 : 0.5;
+  document.getElementById('gravity-btn').textContent = gravityFlipped ? 'flip gravity ↑' : 'flip gravity';
+  bodies.forEach(({ body }) => {
+    if (!body.isStatic)
+      Body.applyForce(body, body.position, {
+        x: (Math.random() - 0.5) * 0.001,
+        y: gravityFlipped ? -0.005 : 0.005
+      });
+  });
+});
+
+/* ── custom SVG cursors ── */
+const cursorPencil   = document.getElementById('cursor-pencil');
+const cursorHand     = document.getElementById('cursor-hand');
+const cursorGrabbing = document.getElementById('cursor-grabbing');
+
+let mouseX = 0, mouseY = 0;
+let cursorState = 'pencil'; // 'pencil' | 'hand' | 'grabbing'
+
+function showCursor(state) {
+  cursorState = state;
+  cursorPencil.style.display   = state === 'pencil'   ? 'block' : 'none';
+  cursorHand.style.display     = state === 'hand'     ? 'block' : 'none';
+  cursorGrabbing.style.display = state === 'grabbing' ? 'block' : 'none';
+}
+showCursor('pencil');
+
+function placeCursor(x, y, state) {
+  // offset so tip of each cursor lands on pointer
+  if (state === 'pencil') {
+    cursorPencil.style.left = (x - 2) + 'px';
+    cursorPencil.style.top  = (y - 22) + 'px';
+  } else if (state === 'hand') {
+    cursorHand.style.left = (x - 8) + 'px';
+    cursorHand.style.top  = (y - 3) + 'px';
+  } else {
+    cursorGrabbing.style.left = (x - 10) + 'px';
+    cursorGrabbing.style.top  = (y - 6) + 'px';
+  }
+}
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  if (!pointerDown) {
+    const r = canvas.getBoundingClientRect();
+    const hit = findBody(mouseX - r.left, mouseY - r.top);
+    const next = hit ? 'hand' : 'pencil';
+    if (next !== cursorState) showCursor(next);
+  }
+  placeCursor(mouseX, mouseY, cursorState);
+});
+
+/* ── helpers ── */
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const s = e.touches ? e.touches[0] : e;
+  return { x: s.clientX - r.left, y: s.clientY - r.top };
+}
+function findBody(x, y) {
+  for (let i = bodies.length - 1; i >= 0; i--)
+    if (Query.point([bodies[i].body], { x, y }).length) return bodies[i];
+  return null;
+}
+function pushVel(x, y) {
+  velHistory.push({ x, y });
+  if (velHistory.length > 8) velHistory.shift();
+}
+function avgVel() {
+  if (!velHistory.length) return { x: 0, y: 0 };
+  // weight recent frames more heavily
+  let wx = 0, wy = 0, w = 0;
+  velHistory.forEach((v, i) => {
+    const weight = i + 1;
+    wx += v.x * weight; wy += v.y * weight; w += weight;
+  });
+  return { x: wx / w, y: wy / w };
+}
+
+/* ── pointer events ── */
+canvas.addEventListener('mousedown',  onDown);
+canvas.addEventListener('mousemove',  onMove);
+canvas.addEventListener('mouseup',    onUp);
+canvas.addEventListener('mouseleave', onUp);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); onDown(e); }, { passive: false });
+canvas.addEventListener('touchmove',  e => { e.preventDefault(); onMove(e); }, { passive: false });
+canvas.addEventListener('touchend',   e => { e.preventDefault(); onUp(e);   }, { passive: false });
+
+function onDown(e) {
+  const pos = getPos(e);
+  pointerDown = true; velHistory = []; lastPos = { ...pos };
+  const hit = findBody(pos.x, pos.y);
+  if (hit) {
+    dragging   = hit;
+    dragOffset = { x: pos.x - hit.body.position.x, y: pos.y - hit.body.position.y };
+    Body.setStatic(hit.body, true);
+    showCursor('grabbing');
+    placeCursor(mouseX, mouseY, 'grabbing');
+  } else {
+    isDoodling = true; strokeColor = nextColor(); doodlePoints = [pos];
+    showCursor('pencil');
+    placeCursor(mouseX, mouseY, 'pencil');
+  }
+}
+function onMove(e) {
+  if (!pointerDown) return;
+  const pos = getPos(e);
+  pushVel(pos.x - lastPos.x, pos.y - lastPos.y);
+  lastPos = { ...pos };
+  if (dragging) {
+    Body.setPosition(dragging.body, { x: pos.x - dragOffset.x, y: pos.y - dragOffset.y });
+  } else if (isDoodling) {
+    const last = doodlePoints[doodlePoints.length - 1];
+    if (Math.hypot(pos.x - last.x, pos.y - last.y) > 3) doodlePoints.push(pos);
+  }
+}
+function onUp(e) {
+  if (!pointerDown) return;
+  const pos = getPos(e);
+  pointerDown = false;
+  if (dragging) {
+    Body.setStatic(dragging.body, false);
+    const av = avgVel();
+    const speed = Math.hypot(av.x, av.y);
+    // Scale: 1px/frame drag → ~1 unit velocity. Cap at 18 so fast flicks don't rocket off.
+    const scale = Math.min(speed * 0.55, 18) / Math.max(speed, 0.001);
+    Body.setVelocity(dragging.body, { x: av.x * scale, y: av.y * scale });
+    dragging = null;
+    showCursor('pencil');
+    placeCursor(mouseX, mouseY, 'pencil');
+  } else if (isDoodling) {
+    isDoodling = false;
+    doodlePoints.length < 3
+      ? spawnDot(pos.x, pos.y, strokeColor, BRUSH_SIZES[currentSize])
+      : spawnFromStroke(doodlePoints, strokeColor, BRUSH_SIZES[currentSize]);
+    doodlePoints = [];
+  }
+}
+
+/* ── spawn bodies ── */
+const PHYS = { restitution: 0.28, friction: 0.45, frictionAir: 0.022, density: 0.0008 };
+
+function spawnDot(x, y, color, r) {
+  const b = Bodies.circle(x, y, r, PHYS);
+  World.add(world, b);
+  bodies.push({ body: b, color, localPts: [], size: r, isDot: true });
+}
+
+function spawnFromStroke(pts, color, brushR) {
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  pts.forEach(p => { minX=Math.min(minX,p.x); minY=Math.min(minY,p.y); maxX=Math.max(maxX,p.x); maxY=Math.max(maxY,p.y); });
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2, pw=maxX-minX, ph=maxY-minY;
+  let body;
+  if (pw < brushR*3 && ph < brushR*3)
+    body = Bodies.circle(cx, cy, Math.max(brushR, (pw+ph)/4), PHYS);
+  else if (pw > ph*2.5)
+    body = Bodies.rectangle(cx, cy, pw+brushR*2, brushR*1.8, PHYS);
+  else if (ph > pw*2.5)
+    body = Bodies.rectangle(cx, cy, brushR*1.8, ph+brushR*2, PHYS);
+  else
+    body = Bodies.circle(cx, cy, Math.max(brushR*1.2, Math.hypot(pw,ph)*0.38), PHYS);
+
+  World.add(world, body);
+  bodies.push({ body, color, localPts: pts.map(p => ({ x:p.x-cx, y:p.y-cy })), size: brushR, isDot: false });
+}
+
+/* ────────────────────────────────────────────
+   INTRO ANIMATION
+   A scripted sequence of doodles that draw
+   themselves, then drop as physics bodies.
+──────────────────────────────────────────── */
+let introActive = true;
+let introLastTs = null;
+let introElapsed = 0;         // total ms since start
+let introSpawned = [];        // indices of shapes already spawned as bodies
+
+// Completed intro strokes kept for drawing until bodies take over
+let introCompletedStrokes = [];
+
+// Each shape: startMs, endMs (when drawing finishes & body spawns), color, brushR, ptsF (fractions)
+function buildTimeline() {
+  const shapes = [
+    // heart — top left
+    { color:'#FF2D8B', brushR:4, ptsF:[
+      [0.12,0.22],[0.13,0.20],[0.15,0.185],[0.175,0.175],[0.20,0.175],[0.22,0.185],
+      [0.235,0.21],[0.235,0.235],[0.22,0.26],[0.195,0.29],[0.17,0.315],[0.15,0.335],
+      [0.13,0.315],[0.105,0.285],[0.10,0.255],[0.105,0.225],[0.12,0.20],[0.14,0.185],
+      [0.175,0.175],[0.20,0.185],[0.22,0.21],[0.225,0.24]
+    ]},
+    // scribble blob — left middle
+    { color:'#E8431A', brushR:3, ptsF:[
+      [0.07,0.47],[0.10,0.45],[0.13,0.44],[0.15,0.455],[0.145,0.48],
+      [0.115,0.505],[0.085,0.495],[0.09,0.465],[0.125,0.45],[0.145,0.47],
+      [0.125,0.495],[0.095,0.49],[0.08,0.475]
+    ]},
+    // smiley face — right of center
+    { color:'#FF2D8B', brushR:3, ptsF:(()=>{
+      const p=[];
+      for(let a=0;a<=Math.PI*2.1;a+=0.2) p.push([0.71+Math.cos(a)*0.052,0.46+Math.sin(a)*0.068]);
+      p.push(null,[0.698,0.435],[0.698,0.443],null,[0.722,0.435],[0.722,0.443],
+             null,[0.697,0.483],[0.703,0.493],[0.71,0.498],[0.717,0.493],[0.723,0.483]);
+      return p;
+    })()},
+    // zigzag — top right
+    { color:'#2B3FF5', brushR:3, ptsF:[
+      [0.77,0.14],[0.80,0.17],[0.83,0.13],[0.86,0.17],[0.89,0.13],[0.92,0.17]
+    ]},
+    // spiral — bottom right
+    { color:'#2B3FF5', brushR:3, ptsF:(()=>{
+      const p=[];
+      for(let a=0,r=0.008;a<Math.PI*4.5;a+=0.25,r+=0.005)
+        p.push([0.85+Math.cos(a)*r, 0.73+Math.sin(a)*r]);
+      return p;
+    })()},
+    // wobbly oval — bottom left
+    { color:'#E8431A', brushR:4, ptsF:(()=>{
+      const p=[];
+      for(let a=0;a<=Math.PI*2.1;a+=0.22){
+        const w=1+Math.sin(a*2.5)*0.1;
+        p.push([0.13+Math.cos(a)*0.065*w, 0.77+Math.sin(a)*0.085*w]);
+      }
+      return p;
+    })()},
+  ];
+
+  // lay out on a timeline: each shape draws for ~700-1000ms, 200ms gap between
+  const DRAW_DUR = [900, 700, 1100, 600, 850, 900];
+  const GAP = 220;
+  let cursor = 400; // initial delay before first stroke
+  return shapes.map((s, i) => {
+    const start = cursor;
+    const end   = cursor + DRAW_DUR[i];
+    cursor = end + GAP;
+    return { ...s, startMs: start, endMs: end, totalMs: cursor };
+  });
+}
+
+const INTRO_TL = buildTimeline();
+const INTRO_TOTAL_MS = INTRO_TL[INTRO_TL.length - 1].endMs + 300;
+
+function tickIntro(dt) {
+  introElapsed += dt;
+
+  INTRO_TL.forEach((shape, idx) => {
+    if (introElapsed < shape.startMs) return;             // not started
+    if (introSpawned.includes(idx)) return;               // already spawned
+
+    if (introElapsed >= shape.endMs) {
+      // Spawn physics body now
+      const realPts = shape.ptsF
+        .filter(p => p !== null)
+        .map(p => ({ x: p[0] * W, y: p[1] * H }));
+      if (realPts.length >= 2) spawnFromStroke(realPts, shape.color, shape.brushR);
+      else if (realPts.length === 1) spawnDot(realPts[0].x, realPts[0].y, shape.color, shape.brushR);
+      introSpawned.push(idx);
+    }
+  });
+
+  if (introElapsed >= INTRO_TOTAL_MS) introActive = false;
+}
+
+function drawIntroStrokes() {
+  INTRO_TL.forEach((shape, idx) => {
+    if (introElapsed < shape.startMs) return;
+    if (introSpawned.includes(idx)) return; // body handles rendering now
+
+    const frac = Math.min((introElapsed - shape.startMs) / (shape.endMs - shape.startMs), 1);
+    const allPts = shape.ptsF.map(p => p === null ? null : [p[0]*W, p[1]*H]);
+    const revealCount = Math.round(frac * allPts.length);
+    const pts = allPts.slice(0, Math.max(revealCount, 2));
+
+    if (pts.filter(p=>p!==null).length < 1) return;
+
+    ctx.save();
+    ctx.strokeStyle = shape.color;
+    ctx.lineWidth   = shape.brushR * 0.85;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.globalAlpha = 0.92;
+
+    let started = false;
+    pts.forEach((p, i) => {
+      if (p === null) { if (started) { ctx.stroke(); } started = false; return; }
+      if (!started) { ctx.beginPath(); ctx.moveTo(p[0], p[1]); started = true; return; }
+      const nx = pts[i+1], isLast = !nx || nx === null;
+      if (!isLast && nx !== null) {
+        const mx = (p[0]+nx[0])/2, my = (p[1]+nx[1])/2;
+        ctx.quadraticCurveTo(p[0], p[1], mx, my);
+      } else {
+        ctx.lineTo(p[0], p[1]);
+      }
+    });
+    if (started) ctx.stroke();
+    ctx.restore();
+  });
+}
+
+/* ── main loop ── */
+function drawBody(b) {
+  const { body, color, localPts, size, isDot } = b;
+  const { x, y } = body.position;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(body.angle);
+
+  if (isDot || !localPts.length) {
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = size * 0.85;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(localPts[0].x, localPts[0].y);
+    for (let i = 1; i < localPts.length-1; i++) {
+      const mx = (localPts[i].x + localPts[i+1].x)/2;
+      const my = (localPts[i].y + localPts[i+1].y)/2;
+      ctx.quadraticCurveTo(localPts[i].x, localPts[i].y, mx, my);
+    }
+    ctx.lineTo(localPts[localPts.length-1].x, localPts[localPts.length-1].y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawPreview() {
+  if (!isDoodling || doodlePoints.length < 2) return;
+  const pts = doodlePoints;
+  ctx.save();
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth   = BRUSH_SIZES[currentSize] * 0.85;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.globalAlpha = 0.88;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length-1; i++) {
+    const mx=(pts[i].x+pts[i+1].x)/2, my=(pts[i].y+pts[i+1].y)/2;
+    ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+  }
+  ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawDragRing() {
+  if (!dragging) return;
+  const { x, y } = dragging.body.position;
+  ctx.save();
+  ctx.strokeStyle = dragging.color;
+  ctx.lineWidth   = 1;
+  ctx.globalAlpha = 0.25;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.arc(x, y, (dragging.size || 14) + 14, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function loop(ts) {
+  requestAnimationFrame(loop);
+  const dt = introLastTs === null ? 16 : Math.min(ts - introLastTs, 50);
+  introLastTs = ts;
+
+  if (introActive) tickIntro(dt);
+
+  clampBodies();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  bodies.forEach(drawBody);
+  if (introActive) drawIntroStrokes();
+  drawPreview();
+  drawDragRing();
+}
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
