@@ -357,6 +357,42 @@ loadCardThumbs();
 
 
 
+
+  /* ── portfolio screens ── */
+  #port-browser {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+  #port-player {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+  #port-player.active { display: flex; }
+  #pp-video { display: none; }
+  #port-player.active #pp-video {
+    display: block;
+    width: 100%;
+    max-width: min(92vw, 1280px);
+    max-height: 90vh;
+    outline: none;
+    background: #000;
+  }
+  #port-player .player-chrome {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 14px 18px 40px;
+    background: linear-gradient(rgba(0,0,0,0.7), transparent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+
 </style>
 </head>
 <body>
@@ -371,7 +407,43 @@ loadCardThumbs();
   <defs>
     <style>
       .cls-1 { fill: #0a0a0a; }
-    </style>
+    
+  /* ── portfolio screens ── */
+  #port-browser {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+  #port-player {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+  }
+  #port-player.active { display: flex; }
+  #pp-video { display: none; }
+  #port-player.active #pp-video {
+    display: block;
+    width: 100%;
+    max-width: min(92vw, 1280px);
+    max-height: 90vh;
+    outline: none;
+    background: #000;
+  }
+  #port-player .player-chrome {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 14px 18px 40px;
+    background: linear-gradient(rgba(0,0,0,0.7), transparent);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 2;
+  }
+
+</style>
   </defs>
   <g id="Layer_1-2" data-name="Layer 1">
     <g>
@@ -485,7 +557,8 @@ loadCardThumbs();
             <path d="M11 4.5L17 1.5L17 11.5L11 8.5Z" fill="rgba(255,255,255,0.75)"/>
           </svg>
         </div>
-        <div class="card-body" style="padding:0;overflow:hidden;">
+        <div class="card-body" style="padding:0;overflow:hidden;position:relative;">
+          <div class="play-tri" style="position:absolute;top:50%;left:52%;transform:translate(-50%,-50%);opacity:0.35;z-index:1;"></div>
           <video class="card-thumb"
                  data-src="videos/MILDLY_UPSET_AI_REEL_1_1.mp4"
                  muted preload="metadata"
@@ -1216,6 +1289,7 @@ function openPlayer(card) {
   vid.onerror = () => {};
   vid.play().catch(() => {});
   document.getElementById('port-browser').style.display = 'none';
+  document.getElementById('pp-video').setAttribute('controls','');
   document.getElementById('port-player').classList.add('active');
 }
 
