@@ -352,8 +352,6 @@ loadCardThumbs();
   .player-close-btn { font-family: 'Andale Mono','Courier New',monospace; font-size: 10px; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); cursor: pointer; transition: color .15s; }
   .player-close-btn:hover { color: #fff; }
   .player-wrap video { width: 100%; display: block; max-height: 88vh; min-height: 180px; outline: none; background: #000; }
-  #lightbox-placeholder { width: 100%; height: 280px; background: rgba(255,255,255,0.03); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
-  #lightbox-placeholder p { font-family: 'Andale Mono','Courier New',monospace; font-size: 11px; letter-spacing: 0.1em; color: rgba(255,255,255,0.3); }
 
 
 
@@ -468,42 +466,48 @@ loadCardThumbs();
 
 <!-- ── portfolio view ── -->
 <div id="portfolio">
-  <div id="port-wordmark">mildlyupset</div>
-  <div id="port-section">video content</div>
-  <div id="port-back">&#8592; back</div>
-  <div id="port-hint">click to open &middot; drag to move</div>
 
-  <!-- single video card with thumbnail preview -->
-  <div class="vid-card" id="vc1"
-       data-src="videos/MILDLY_UPSET_AI_REEL_1_1.mp4"
-       data-title="mildly upset — AI reel v1"
-       style="left:50%;top:50%;transform:translate(-50%,-50%) rotate(-1deg)">
-    <div class="card-icon">
-      <div class="card-header" style="background:#E8431A">
-        <svg width="18" height="13" viewBox="0 0 18 13" fill="none">
-          <rect x="0.5" y="1.5" width="10" height="10" rx="1" fill="rgba(255,255,255,0.75)"/>
-          <path d="M11 4.5L17 1.5L17 11.5L11 8.5Z" fill="rgba(255,255,255,0.75)"/>
-        </svg>
+  <!-- ── browser view ── -->
+  <div id="port-browser">
+    <div id="port-wordmark">mildlyupset</div>
+    <div id="port-section">video content</div>
+    <div id="port-back">&#8592; back</div>
+    <div id="port-hint">click to open &middot; drag to move</div>
+
+    <div class="vid-card" id="vc1"
+         data-src="videos/MILDLY_UPSET_AI_REEL_1_1.mp4"
+         data-title="mildly upset — AI reel v1"
+         style="left:50%;top:50%;transform:translate(-50%,-50%) rotate(-1deg)">
+      <div class="card-icon">
+        <div class="card-header" style="background:#E8431A">
+          <svg width="18" height="13" viewBox="0 0 18 13" fill="none">
+            <rect x="0.5" y="1.5" width="10" height="10" rx="1" fill="rgba(255,255,255,0.75)"/>
+            <path d="M11 4.5L17 1.5L17 11.5L11 8.5Z" fill="rgba(255,255,255,0.75)"/>
+          </svg>
+        </div>
+        <div class="card-body" style="padding:0;overflow:hidden;">
+          <video class="card-thumb"
+                 data-src="videos/MILDLY_UPSET_AI_REEL_1_1.mp4"
+                 muted preload="metadata"
+                 style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;">
+          </video>
+        </div>
       </div>
-      <div class="card-body" style="padding:0;overflow:hidden;">
-        <video class="card-thumb"
-               data-src="videos/MILDLY_UPSET_AI_REEL_1_1.mp4"
-               muted preload="metadata"
-               style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;">
-        </video>
-      </div>
+      <div class="card-filename">AI reel — v1</div>
     </div>
-    <div class="card-filename">AI reel — v1</div>
+  </div><!-- /port-browser -->
+
+  <!-- ── player view (second screen, no separate overlay needed) ── -->
+  <div id="port-player">
+    <div class="player-chrome">
+      <span class="player-title" id="pp-title"></span>
+      <span class="player-close-btn" id="pp-close">&#10005; close</span>
+    </div>
+    <video id="pp-video" controls playsinline></video>
   </div>
+
 </div><!-- /portfolio -->
 
-<!-- ── lightbox ── -->
-<div id="lightbox">
-  <div class="player-wrap">
-    <div class="player-chrome">
-      <span class="player-title" id="lightbox-title"></span>
-      <span class="player-close-btn" id="lightbox-close">&#10005; close</span>
-    </div>
     <video id="lightbox-video" controls playsinline></video>
     <div id="lightbox-placeholder">
       <svg width="40" height="30" viewBox="0 0 48 36" fill="none">
@@ -1123,6 +1127,7 @@ document.getElementById('port-back').addEventListener('click', closePortfolio);
 
 function closePortfolio() {
   portfolioOpen = false;
+  closePlayer(); // reset player if open
   portfolioEl.classList.remove('open');
   document.querySelectorAll('.folder-overlay').forEach(f => f.style.display = 'flex');
   // restore custom cursor
@@ -1155,7 +1160,7 @@ document.querySelectorAll('.vid-card').forEach(card => {
     if (!portfolioOpen) return;                          // never open player from landing page
     if (Date.now() - portfolioOpenedAt < 500) return;   // ignore folder dblclick bleed-through
     const moved = Math.hypot(e.clientX - cardClickOx, e.clientY - cardClickOy);
-    if (moved < 8) openLightbox(card);
+    if (moved < 8) openPlayer(card);
   });
 });
 
@@ -1197,51 +1202,41 @@ function loadCardThumbs() {
 loadCardThumbs();
 
 /* ── lightbox ── */
-const lightboxEl   = document.getElementById('lightbox');
-const lightboxVid  = document.getElementById('lightbox-video');
-const lightboxPh   = document.getElementById('lightbox-placeholder');
 
-function openLightbox(card) {
-  if (!portfolioOpen || !portfolioEl.classList.contains('open')) return; // only from inside open portfolio
-  if (lightboxEl.classList.contains('open')) return; // already open
-  const src   = card.dataset.src  || '';
-  lightboxVid.pause();
-  lightboxVid.removeAttribute('src');
-  lightboxVid.load(); // reset
-  lightboxVid.style.display = 'block';
-  lightboxPh.style.display  = 'none';
-  lightboxVid.onerror = () => {
-    lightboxVid.style.display = 'none';
-    lightboxPh.style.display  = 'flex';
-  };
-  const title = card.dataset.title || '';
-  document.getElementById('lightbox-title').textContent = title;
-
-  if (src) {
-    lightboxVid.src = src;
-    lightboxVid.play().catch(() => {});
-  } else {
-    lightboxVid.src = '';
-    lightboxVid.style.display = 'none';
-    lightboxPh.style.display  = 'flex';
-  }
-  lightboxEl.classList.add('open');
+function openPlayer(card) {
+  if (!portfolioOpen || !portfolioEl.classList.contains('open')) return;
+  const vsrc   = card.dataset.src   || '';
+  const vtitle = card.dataset.title || '';
+  document.getElementById('pp-title').textContent = vtitle;
+  const vid = document.getElementById('pp-video');
+  vid.pause();
+  vid.removeAttribute('src');
+  vid.load();
+  vid.src = vsrc;
+  vid.onerror = () => {};
+  vid.play().catch(() => {});
+  document.getElementById('port-browser').style.display = 'none';
+  document.getElementById('port-player').classList.add('active');
 }
 
-function closeLightbox() {
-  lightboxVid.pause();
-  lightboxVid.src = '';
-  lightboxEl.classList.remove('open');
+function closePlayer() {
+  const vid = document.getElementById('pp-video');
+  vid.pause();
+  vid.removeAttribute('src');
+  vid.load();
+  document.getElementById('port-player').classList.remove('active');
+  document.getElementById('port-browser').style.display = 'block';
 }
 
-document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
-lightboxEl.addEventListener('click', e => { if (e.target === lightboxEl) closeLightbox(); });
+
+document.getElementById('pp-close').addEventListener('click', closePlayer);
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (lightboxEl && lightboxEl.classList.contains('open')) {
-    closeLightbox(); // ESC closes player → stays in portfolio
+  const ppEl = document.getElementById('port-player');
+  if (ppEl && ppEl.classList.contains('active')) {
+    closePlayer(); // ESC closes player → back to file browser
   } else if (portfolioOpen) {
-    closePortfolio(); // second ESC closes portfolio → goes home
+    closePortfolio(); // ESC closes portfolio → back to home
   }
 });
 
