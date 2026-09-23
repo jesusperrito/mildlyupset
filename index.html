@@ -472,7 +472,7 @@ loadCardThumbs();
   <div id="port-wordmark">mildlyupset</div>
   <div id="port-section">video content</div>
   <div id="port-back">&#8592; back</div>
-  <div id="port-hint">double-click to open &middot; drag to move</div>
+  <div id="port-hint">click to open &middot; drag to move</div>
 
   <!-- single video card with thumbnail preview -->
   <div class="vid-card" id="vc1"
@@ -1199,13 +1199,18 @@ const lightboxPh   = document.getElementById('lightbox-placeholder');
 
 function openLightbox(card) {
   const src   = card.dataset.src  || '';
+  // Reset error state
+  lightboxVid.onerror = () => {
+    lightboxVid.style.display = 'none';
+    lightboxPh.style.display  = 'flex';
+  };
   const title = card.dataset.title || '';
   document.getElementById('lightbox-title').textContent = title;
 
   if (src) {
-    lightboxVid.src = src;
     lightboxVid.style.display = 'block';
     lightboxPh.style.display  = 'none';
+    lightboxVid.src = src;
     lightboxVid.play().catch(() => {});
   } else {
     lightboxVid.src = '';
@@ -1223,7 +1228,14 @@ function closeLightbox() {
 
 document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
 lightboxEl.addEventListener('click', e => { if (e.target === lightboxEl) closeLightbox(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeLightbox(); closePortfolio(); } });
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (lightboxEl && lightboxEl.classList.contains('open')) {
+    closeLightbox(); // ESC closes player → stays in portfolio
+  } else if (portfolioOpen) {
+    closePortfolio(); // second ESC closes portfolio → goes home
+  }
+});
 
 /* guard mousemove cursor handler when portfolio open */
 const _origPortfolioCheck = () => portfolioOpen;
