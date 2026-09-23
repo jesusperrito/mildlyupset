@@ -347,10 +347,9 @@ loadCardThumbs();
     align-items: center;
     justify-content: space-between;
     z-index: 2;
-    pointer-events: none;
   }
   .player-title { font-family: 'Andale Mono','Courier New',monospace; font-size: 10px; letter-spacing: 0.12em; color: rgba(255,255,255,0.45); }
-  .player-close-btn { font-family: 'Andale Mono','Courier New',monospace; font-size: 10px; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); cursor: pointer; pointer-events: all; transition: color .15s; }
+  .player-close-btn { font-family: 'Andale Mono','Courier New',monospace; font-size: 10px; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); cursor: pointer; transition: color .15s; }
   .player-close-btn:hover { color: #fff; }
   .player-wrap video { width: 100%; display: block; max-height: 88vh; outline: none; }
   #lightbox-placeholder { width: 100%; height: 280px; background: rgba(255,255,255,0.03); display: none; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
@@ -496,6 +495,7 @@ loadCardThumbs();
     </div>
     <div class="card-filename">AI reel — v1</div>
   </div>
+</div><!-- /portfolio -->
 
 <!-- ── lightbox ── -->
 <div id="lightbox">
@@ -1105,6 +1105,7 @@ document.getElementById('canvas').addEventListener('mousedown', () => {
 /* ── open / close portfolio ── */
 function openPortfolio(section) {
   portfolioOpen = true;
+  portfolioOpenedAt = Date.now();
   portfolioEl.classList.add('open');
   const sec = document.getElementById('port-section');
   if (sec) sec.textContent = section || '';
@@ -1137,6 +1138,7 @@ let cardDragOx    = 0;
 let cardDragOy    = 0;
 
 let cardClickOx = 0, cardClickOy = 0;
+let portfolioOpenedAt = 0;
 document.querySelectorAll('.vid-card').forEach(card => {
   card.addEventListener('mousedown', e => {
     e.stopPropagation();
@@ -1150,6 +1152,7 @@ document.querySelectorAll('.vid-card').forEach(card => {
   });
   card.addEventListener('click', e => {
     e.stopPropagation();
+    if (Date.now() - portfolioOpenedAt < 500) return; // ignore clicks from folder dblclick
     const moved = Math.hypot(e.clientX - cardClickOx, e.clientY - cardClickOy);
     if (moved < 8) openLightbox(card);
   });
